@@ -36,7 +36,9 @@ public class SecurityConfig {
                                 "/login/**",
                                 "/error/**",
                                 "/oauth2/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/flight/**",
+                                "/seats/**"
                         ).permitAll()
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .requestMatchers("/user/**").hasRole("USER")

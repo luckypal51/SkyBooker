@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
-@RequestMapping("staff/seat")
+@RequestMapping("/staff/seat")
 public class StaffController {
     @Autowired
     SeatServiceImpl seatService;

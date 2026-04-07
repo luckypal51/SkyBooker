@@ -12,8 +12,7 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-
-    private String SECRET = "asdfghjklqwertyuiopzxcvbnm756312369qwertyuiopsdfghjk";
+	private String SECRET = "asdfghjklqwertyuiopzxcvbnm756312369qwertyuiopsdfghjk";
 
     public String generateToken(String username,String role) {
         return Jwts.builder()
@@ -37,6 +36,7 @@ public class JwtService {
             return Keys.hmacShaKeyFor(SECRET.getBytes());
         }
     public boolean validateToken(String token, UserDetails userDetails) {
+    	Jwts.parser().setSigningKey(getKey()).build().parseClaimsJws(token);
         final String username = extractUsername(token);
 
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
@@ -45,5 +45,4 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         return getClaims(token).getExpiration().before(new Date());
     }
-
 }

@@ -1,6 +1,9 @@
 package com.app.authentication.controller;
 
+import com.app.authentication.config.UserDetail;
+
 import com.app.authentication.dto.RequestDto;
+import com.app.authentication.dto.RequestToken;
 import com.app.authentication.dto.ResponseDto;
 import com.app.authentication.dto.ResponseUser;
 import com.app.authentication.dto.SignInDto;
@@ -14,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -35,6 +39,9 @@ public class JwtController {
 
     @Autowired
     AuthService authService;
+    
+    @Autowired
+    UserDetail user;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody RequestDto requestDto){
@@ -67,5 +74,17 @@ public class JwtController {
     @GetMapping("/getprofile")
     public ResponseEntity<ResponseUser> getProfile(@RequestParam Long id){
         return ResponseEntity.status(HttpStatus.FOUND).body(authService.getUserById(id));
+    }
+    
+    @GetMapping("/validated-token")
+    public ResponseEntity<Void> validatedToken(@RequestParam String token){
+    	UserDetails name = user.loadUserByUsername(jwtService.extractUsername(token));
+    	jwtService.validateToken(token,name);
+    	return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    }
+    
+    @GetMapping("/get-token")
+    public ResponseEntity<String> getTokenFromController(@RequestParam RequestToken requestToken){
+    	return ResponseEntity.status(HttpStatus.CREATED).body(jwtService.generateToken(requestToken.getEmail(),requestToken.getRole()));
     }
 }
