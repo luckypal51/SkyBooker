@@ -70,6 +70,9 @@ public class SeatServiceImpl implements SeatService{
     public void holdSeat(Long id) {
         try{
             Seat seat = repo.findById(id).orElseThrow(() -> new RuntimeException("Seat not found with id: " + id));
+            if(seat.getStatus().equalsIgnoreCase("CONFIRMED")||seat.getStatus().equalsIgnoreCase("HELD")) {
+            	throw new RuntimeException("Seat Not available");
+            }
             seat.setStatus("HELD");
             repo.save(seat);
         } catch (RuntimeException e) {

@@ -8,17 +8,55 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: seats
+
+        # 🔓 AUTH SERVICE (PUBLIC - NO FILTER)
+        - id: authentication-service
+          uri: lb://AUTHENTICATION
+          predicates:
+            - Path=/auth/**
+
+        # 🔐 ADMIN ROUTES (SECURED)
+        - id: admin-service
+          uri: lb://AUTHENTICATION
+          predicates:
+            - Path=/admin/**
+          filters:
+            - AuthenticationFilter
+
+        # 🔐 PASSENGER SERVICE (SECURED)
+        - id: passenger-service
+          uri: lb://PASSENGER-SERVICE
+          predicates:
+            - Path=/passenger/**
+          filters:
+            - AuthenticationFilter
+
+        # 🔐 SEATS SERVICE (SECURED)
+        - id: seats-service
           uri: lb://SEATS
           predicates:
             - Path=/seats/**, /staff/**
+          filters:
+            - AuthenticationFilter
 
-        - id: authentication
-          uri: lb://AUTHENTICATION
+        # 🔐 SKYBOOKER SERVICE (SECURED)
+        - id: skybooker-service
+          uri: lb://SKYBOOKER
           predicates:
-            - Path=/auth/**, /admin/**
+            - Path=/flight/**
+          filters:
+            - AuthenticationFilter
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

@@ -21,11 +21,6 @@ public class FlightServiceStaffController {
        flightServiceImp.addFlight(flightDto);
     }
 
-    @PostMapping("/search-flight-by-id")
-    public ResponseEntity<Optional<FlightDto>> searchFlightById(@RequestParam Long id){
-       return ResponseEntity.status(HttpStatus.ACCEPTED).body(flightServiceImp.getFlightById(id));
-    }
-
     @PutMapping("/update-flight")
     public void updateFlight(@RequestParam Long id, @RequestBody FlightDto flightDto){
         flightServiceImp.updateFlight(id,flightDto);

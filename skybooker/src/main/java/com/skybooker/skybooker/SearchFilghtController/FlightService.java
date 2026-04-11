@@ -28,8 +28,13 @@ public class FlightService {
         return ResponseEntity.status(HttpStatus.OK).body(flightServiceImp.searchFlights(search.getOrigin(),search.getDestination(),search.getDate()));
     }
 
-    @PostMapping("/sreach-flights-airline")
+    @PostMapping("/search-flights-airline")
     public ResponseEntity<List<FlightDto>> searchFlightByAirlineId(@RequestParam Long id){
         return ResponseEntity.status(HttpStatus.OK).body(flightServiceImp.getFlightByAirline(id));
+    }
+    
+    @GetMapping("/search-flight-by-id")
+    public ResponseEntity<Optional<FlightDto>> searchFlightById(@RequestParam Long id){
+       return ResponseEntity.status(HttpStatus.ACCEPTED).body(flightServiceImp.getFlightById(id));
     }
 }
