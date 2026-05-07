@@ -6,7 +6,11 @@ import com.app.authentication.dto.ResponseDto;
 import com.app.authentication.dto.ResponseUser;
 import com.app.authentication.dto.SignInDto;
 import com.app.authentication.entity.User;
+import com.app.authentication.exception.AuthenticationException;
+import com.app.authentication.exception.ResouceNotFoundException;
 import com.app.authentication.repository.UserRepository;
+import com.app.authentication.util.ConstantValue;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,11 +45,11 @@ public class AuthService implements AuthServiceImpl {
 
     public String signup(RequestDto requestDto){
           if(userRepository.existsByEmail(requestDto.getEmail())){
-              throw new IllegalArgumentException("User Already exists");
+              throw new AuthenticationException(ConstantValue.USER_EXISTS);
           }
-          requestDto.setPasswordHash(encoder.encode(requestDto.getPasswordHash()));
+          requestDto.setPassword(encoder.encode(requestDto.getPassword()));
           userRepository.save(converToUser(requestDto));
-          return "SuccessFully Added User "+requestDto.getFullName();
+          return ConstantValue.SUCCESSFULLY_ADDED_USER+requestDto.getFullName();
     }
 
 
@@ -60,7 +65,7 @@ public class AuthService implements AuthServiceImpl {
         String token = jwtService.generateToken(userDetails.getUsername(),role);
         responseDto.setToken(token);
         log.debug(responseDto.getToken());
-        responseDto.setMessage("Successfully Generated Token");
+        responseDto.setMessage(ConstantValue.GENERATED_TOKEN);
         return responseDto;
     }
 
@@ -72,35 +77,50 @@ public class AuthService implements AuthServiceImpl {
 
     @Override
     public ResponseUser getUserById(Long id) {
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(()->new ResouceNotFoundException(ConstantValue.USER_NOT_FOUND_ID+id));
         return convertUserToResonse(user);
     }
 
     @Override
     public ResponseUser getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).get();
+        User user = userRepository.findByEmail(email).orElseThrow(()->new ResouceNotFoundException(ConstantValue.USER_NOT_FOUND_EMAIL+email));
         return convertUserToResonse(user);
     }
 
     @Override
     public ResponseUser updateProfile(Long id, RequestDto user) {
-        User u = userRepository.findById(id).get();
-        User user1 = converToUser(user);
-        user1.setUserId(u.getUserId());
-        userRepository.save(user1);
-        return convertUserToResonse(user1);
+
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new ResouceNotFoundException(
+                        ConstantValue.USER_NOT_FOUND_ID + id));
+
+        u.setEmail(user.getEmail());
+        u.setFullName(user.getFullName());
+        u.setNationality(user.getNationality());
+        u.setPassportNumber(user.getPassportNumber());
+        u.setPhone(user.getPhone());
+        u.setRole(user.getRole());
+
+        // Safe password update
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            u.setPasswordHash(encoder.encode(user.getPassword()));
+        }
+
+        userRepository.save(u);
+
+        return convertUserToResonse(u);
     }
 
     @Override
     public void changePassword(Long id, String password) {
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(()->new ResouceNotFoundException(ConstantValue.USER_NOT_FOUND_ID+id));
         user.setPasswordHash(encoder.encode(password));
         userRepository.save(user);
     }
 
     @Override
     public void deactivateAccount(Long id) {
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(id).orElseThrow(()->new ResouceNotFoundException(ConstantValue.USER_NOT_FOUND_ID+id));
         user.setIsActive(false);
         userRepository.save(user);
     }
@@ -114,19 +134,23 @@ public class AuthService implements AuthServiceImpl {
         }
         return result;
     }
+    
+    public void deleteUserById(Long userId) {
+    	userRepository.deleteById(userId);
+    }
 
     private User converToUser(RequestDto requestDto){
         User user = new User();
-        user.setIsActive(requestDto.getIsActive());
+        user.setIsActive(requestDto.getActive());
         user.setEmail(requestDto.getEmail());
         user.setPhone(requestDto.getPhone());
         user.setNationality(requestDto.getNationality());
         user.setFullName(requestDto.getFullName());
         user.setProvider(requestDto.getProvider());
         user.setRole(requestDto.getRole());
-        user.setPasswordHash(requestDto.getPasswordHash());
+        user.setPasswordHash(requestDto.getPassword());
         user.setPassportNumber(requestDto.getPassportNumber());
-        user.setCreatedAt(requestDto.getCreatedAt());
+        user.setCreatedAt(LocalDate.now());
         return user;
     }
 
@@ -139,8 +163,8 @@ public class AuthService implements AuthServiceImpl {
                 user.getProvider(),
                 user.getIsActive(),
                 user.getPassportNumber(),
-                user.getNationality(),
-                user.getCreatedAt());
+                user.getNationality()
+                );
         return requestDto;
     }
 

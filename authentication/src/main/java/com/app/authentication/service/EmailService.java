@@ -4,6 +4,8 @@ import com.app.authentication.entity.PasswordResetToken;
 import com.app.authentication.entity.User;
 import com.app.authentication.repository.PasswordResetRepo;
 import com.app.authentication.repository.UserRepository;
+import com.app.authentication.util.ConstantValue;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,9 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 @Service
 public class EmailService {
+
+    @Autowired
+    ForgotPasswordProducer forgotPasswordProducer;
 
     @Autowired
     UserRepository userRepo;
@@ -23,40 +27,46 @@ public class EmailService {
     PasswordResetRepo repo;
 
     @Autowired
-    private JavaMailSender mailSender;
-
-    @Autowired
     PasswordEncoder passwordEncoder;
 
-    public void send(String toEmail, String resetLink) {
+    public String forgotPassword(String email, String otp) {
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
-        message.setSubject("Password Reset Request");
+        Optional<PasswordResetToken> existing = repo.findByToken(otp);
 
-        message.setText(
-                "Otp is given below to reset your password:\n" +
-                        resetLink +
-                        "\nThis OTP will expire in 15 minutes."
-        );
-
-        mailSender.send(message);
-    }
-
-    public String resetPassword(String otp,String newPassword){
-        PasswordResetToken resetToken = repo.findByToken(otp)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
-
-        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expired");
+        if (existing.isPresent() &&
+            existing.get().getExpiryDate().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException(ConstantValue.OTP_ALREADY_SENT);
         }
 
-        Optional<User> user = userRepo.findByEmail(resetToken.getEmail());
+        PasswordResetToken token = new PasswordResetToken();
+        token.setEmail(email);
+        token.setToken(otp);
+        token.setExpiryDate(LocalDateTime.now().plusMinutes(15));
 
-        user.get().setPasswordHash(passwordEncoder.encode(newPassword));
-        userRepo.save(user.get());
-       return "Password Reset Completed";
+        repo.save(token);
+
+        forgotPasswordProducer.sendEmailEvent(email, otp);
+
+        return ConstantValue.OTP_SENT;
     }
 
+    public String resetPassword(String otp, String newPassword) {
 
+        PasswordResetToken resetToken = repo.findByToken(otp)
+                .orElseThrow(() -> new RuntimeException(ConstantValue.INVALID_OTP));
+
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException(ConstantValue.OTP_EXPIRE);
+        }
+
+        User user = userRepo.findByEmail(resetToken.getEmail())
+                .orElseThrow(() -> new RuntimeException(ConstantValue.USER_NOT_FOUND));
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+
+        repo.delete(resetToken);
+
+        return ConstantValue.PASSWORD_RESET_SUCCESSFULLY;
+    }
 }

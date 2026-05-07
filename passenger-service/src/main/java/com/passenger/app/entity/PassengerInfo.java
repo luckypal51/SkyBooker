@@ -17,7 +17,7 @@ public class PassengerInfo {
 	@Id
 	@GeneratedValue
      private Long passengerId;
-     private String bookingId;
+     private Long bookingId;
      private String title;
      private String firstName;
      private String lastName;

@@ -2,6 +2,8 @@ package com.app.authentication.security;
 
 import com.app.authentication.config.UserDetail;
 import com.app.authentication.service.JwtService;
+import com.app.authentication.util.ConstantValue;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +37,11 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader(ConstantValue.AUTHORIZED);
         String token = null;
         String username = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith(ConstantValue.BEARER)) {
             token = authHeader.substring(7);
             username = jwtService.extractUsername(token);
         }

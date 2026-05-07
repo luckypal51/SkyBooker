@@ -3,6 +3,8 @@ package com.app.authentication.security;
 import com.app.authentication.entity.User;
 import com.app.authentication.repository.UserRepository;
 import com.app.authentication.service.JwtService;
+import com.app.authentication.util.ConstantValue;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,7 +52,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
 
         // Redirect to your frontend or a specific landing page with the token
-        String targetUrl = "http://localhost:4200/oauth-success?token=" + token;
+        String targetUrl = ConstantValue.OAUTH2_REDIRECT_URL + token;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

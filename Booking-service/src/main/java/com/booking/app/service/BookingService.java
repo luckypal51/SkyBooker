@@ -11,7 +11,7 @@ public interface BookingService {
 	
 	BookingDto createBooking(BookingDto booking,List<PassengerDto> passenagers);
     
-	BookingDto getBookingById(String bookingId);
+	BookingDto getBookingById(Long bookingId);
 	
 	BookingDto getBookingByPnr(String pnrCode);
 	
@@ -19,13 +19,13 @@ public interface BookingService {
 	
 	List<BookingDto> getBookingByFlight(Long flightId);
 	
-	void cancelBooking(String bookingId);
+	void cancelBooking(Long bookingId);
 	
-	void updateStatus(String bookingId,String status);
+	void updateStatus(Long bookingId,String status);
 	
-	FareSummary calculateFare(Long flightId,String classs,Integer noPassenger);
+	FareSummary calculateFare(Long flightId,Long classs,Integer noPassenger);
 	
-	void addAddOn(String bookingId,String type,Double amount);
+	void addAddOn(Long bookingId,String type,Double amount);
 	
 	String generatePnr();
 	

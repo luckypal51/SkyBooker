@@ -2,8 +2,10 @@ package com.booking.app.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +19,7 @@ public class Booking {
      
 	@Id
 	@GeneratedValue
-	private String bookingId;
+	private Long bookingId;
 	private Long userId;
 	private Long flightId;
 	private String pnrCode;
@@ -32,6 +34,7 @@ public class Booking {
 	private String contactPhone;
 	private LocalDateTime bookedAt;
 	private String paymentId;
+	@Column(columnDefinition = "TEXT")
 	private String paymentLink;
 	
 }

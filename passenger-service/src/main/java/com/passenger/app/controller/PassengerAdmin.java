@@ -10,14 +10,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.passenger.app.service.PassengerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/admin/passenger")
+@Tag(name = "Passenger Service For Admin")
 public class PassengerAdmin {
 	
 	@Autowired
 	PassengerService passengerService;
 
 	@DeleteMapping("/delete")
+	@Operation(summary = "Delete Passenger By Id")
 	public ResponseEntity<Void> deletePassenger(@RequestParam Long passengerId){
 		passengerService.deletePassenger(passengerId);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

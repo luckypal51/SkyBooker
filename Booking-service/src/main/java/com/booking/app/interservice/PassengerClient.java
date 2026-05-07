@@ -2,7 +2,7 @@ package com.booking.app.interservice;
 
 import java.util.List;
 
-import org.springframework.cloud.netflix.feign.FeignClient;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,8 +14,11 @@ import com.booking.app.dto.PassengerDto;
 public interface PassengerClient {
 	
 	@GetMapping("/passenger/get-passengers-by-booking")
-     public List<PassengerDto> getPassengerByBookingId(@RequestParam String bookingId);
+     public List<PassengerDto> getPassengerByBookingId(@RequestParam Long bookingId);
      
-     @PutMapping("/passenger/update-passenger")
-     public void updatePassenger(@RequestBody PassengerDto passengerDto);
+	@PutMapping("/passenger/update-passenger")
+    void updatePassenger(
+        @RequestParam("passengerId") Long passengerId,   
+        @RequestBody PassengerDto passengerDto         
+    );
 }

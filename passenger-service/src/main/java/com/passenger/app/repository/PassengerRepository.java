@@ -8,7 +8,7 @@ import java.util.*;
 import com.passenger.app.entity.PassengerInfo;
 
 public interface PassengerRepository extends JpaRepository<PassengerInfo,Long>{
-      List<PassengerInfo> findByBookingId(String bookingId);
+      List<PassengerInfo> findByBookingId(Long bookingId);
       
       Optional<PassengerInfo> findByPassengerId(Long passengerid);
       
@@ -19,8 +19,8 @@ public interface PassengerRepository extends JpaRepository<PassengerInfo,Long>{
       Optional<PassengerInfo> findBySeatId(Long seatId);
       
       @Query("select COUNT(p) from PassengerInfo p where p.bookingId=:bookingId")
-      Integer countByBookingId(@Param("bookingId")String bookingId);
+      Integer countByBookingId(@Param("bookingId")Long bookingId);
       
-      void deleteByBookingId(String id);
+      void deleteByBookingId(Long id);
       
 }

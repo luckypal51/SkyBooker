@@ -1,7 +1,8 @@
 package com.skybooker.skybooker.service;
 
+import com.skybooker.skybooker.dto.FlightDto;
+
 import com.skybooker.skybooker.entity.Flight;
-import com.skybooker.skybooker.model.FlightDto;
 import com.skybooker.skybooker.repository.FlightRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,6 @@ public class FlightServiceImp implements FlightService{
     public FlightDto updateFlight(Long id, FlightDto flight) {
         try{
             Flight oldFLight = repo.findByFlightId(id);
-            repo.delete(oldFLight);
             repo.save(convertToFlight(flight));
             return flight;
         } catch (RuntimeException e) {
@@ -137,9 +137,23 @@ public class FlightServiceImp implements FlightService{
             throw new RuntimeException(e);
         }
     }
+    public List<FlightDto> getAllFlight() {
 
+        List<Flight> flights = repo.findAll();
+
+        System.out.println("Flights size = " + flights.size());
+
+        for (Flight f : flights) {
+            System.out.println("Flight Data = " + f);
+        }
+
+        return flights.stream()
+                .map(this::convertToFlightDto)
+                .toList();
+    }
     private Flight convertToFlight(FlightDto flightDto){
         return new Flight(
+        		flightDto.getFlightId(),
                 flightDto.getFlightNumber(),
                 flightDto.getAirlineId(),
                 flightDto.getOriginAirportCode(),
@@ -157,7 +171,9 @@ public class FlightServiceImp implements FlightService{
     }
 
     private FlightDto convertToFlightDto(Flight flight){
-        return new FlightDto(  flight.getFlightNumber(),
+        return new FlightDto(
+        		flight.getFlightId(),
+        		flight.getFlightNumber(),
                 flight.getAirlineId(),
                 flight.getOriginAirportCode(),
                 flight.getDestinationAirportCode(),

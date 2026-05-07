@@ -1,6 +1,7 @@
-package com.skybooker.skybooker.model;
+package com.skybooker.skybooker.dto;
 
 import lombok.AllArgsConstructor;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

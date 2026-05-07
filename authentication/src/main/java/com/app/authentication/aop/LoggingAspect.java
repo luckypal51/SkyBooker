@@ -1,0 +1,27 @@
+package com.app.authentication.aop;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Aspect
+@Component
+@Slf4j
+public class LoggingAspect {
+      
+	@Before("execution(* com.app.authentication.service.*.*(..))")
+	public void beforeLog(JoinPoint joinPoint) {
+		log.info("Entering {} with args {}",joinPoint.getSignature().getName(),joinPoint.getArgs());
+	}
+	
+	   
+	@After("execution(* com.app.authentication.service.*.*(..))")
+     public void afterLog(JoinPoint joinPoint) {
+		log.info("Exiting "+joinPoint.getSignature().getName());
+	}
+	
+}

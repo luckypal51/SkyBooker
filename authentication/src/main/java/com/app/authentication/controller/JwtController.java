@@ -14,6 +14,9 @@ import com.app.authentication.service.AuthService;
 import com.app.authentication.service.EmailService;
 import com.app.authentication.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,18 +47,18 @@ public class JwtController {
     UserDetail user;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody RequestDto requestDto){
+    public ResponseEntity<String> signup(@Valid @RequestBody RequestDto requestDto){
         System.out.println(requestDto.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(requestDto));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<ResponseDto> signin(@RequestBody SignInDto signInDto){
+    public ResponseEntity<ResponseDto> signin(@Valid @RequestBody SignInDto signInDto){
         System.out.println(signInDto.getPassword());
         return  ResponseEntity.status(HttpStatus.ACCEPTED).body(authService.signin(signInDto.getEmail(),signInDto.getPassword()));
     }
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<String> forgotPassword( @RequestParam String email) {
         String token = String.valueOf(new Random().nextInt(100000,999999));
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setEmail(email);
@@ -63,7 +66,7 @@ public class JwtController {
         resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(15));
         repo.save(resetToken);
         String link = "OTP : " + token;
-        emailService.send(email, link);
+        emailService.forgotPassword(email, link);
         return ResponseEntity.ok("OTP Sent");
     }
     @PostMapping("/reset-password")
@@ -72,9 +75,10 @@ public class JwtController {
         return ResponseEntity.ok(emailService.resetPassword(otp,newPassword));
     }
     @GetMapping("/getprofile")
-    public ResponseEntity<ResponseUser> getProfile(@RequestParam Long id){
-        return ResponseEntity.status(HttpStatus.FOUND).body(authService.getUserById(id));
+    public ResponseEntity<ResponseUser> getProfile( @RequestParam String email){
+        return ResponseEntity.status(HttpStatus.FOUND).body(authService.getUserByEmail(email));
     }
+    
     
     @GetMapping("/validated-token")
     public ResponseEntity<Void> validatedToken(@RequestParam String token){
@@ -83,8 +87,20 @@ public class JwtController {
     	return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
     
-    @GetMapping("/get-token")
-    public ResponseEntity<String> getTokenFromController(@RequestParam RequestToken requestToken){
-    	return ResponseEntity.status(HttpStatus.CREATED).body(jwtService.generateToken(requestToken.getEmail(),requestToken.getRole()));
+    @GetMapping("/getdata")
+    public ResponseEntity<ResponseUser> getData(
+            @RequestHeader("Authorization") String token) {
+    	       String str = token.substring(7);
+          return ResponseEntity.ok(authService.getUserByEmail(jwtService.extractUsername(str)));
+    }
+    
+    @PostMapping("/get-token")
+    public ResponseEntity<String> getTokenFromController(
+            @RequestBody RequestToken requestToken) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(jwtService.generateToken(
+                        requestToken.getEmail(),
+                        requestToken.getRole()));
     }
 }

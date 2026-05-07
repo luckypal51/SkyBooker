@@ -12,8 +12,11 @@ import org.springframework.stereotype.Service;
 import com.passenger.app.dto.PassengerDto;
 import com.passenger.app.dto.SeatDto;
 import com.passenger.app.entity.PassengerInfo;
+import com.passenger.app.exception.PassengerServiceException;
+import com.passenger.app.exception.ResourceNotFoundException;
 import com.passenger.app.feigclient.SeatServiceClient;
 import com.passenger.app.repository.PassengerRepository;
+import com.passenger.app.util.ConstantValue;
 
 @Service
 public class PassengerServiceImp implements PassengerService{
@@ -27,10 +30,9 @@ public class PassengerServiceImp implements PassengerService{
 	@Override
 	public PassengerDto addPassenger(PassengerDto passengerDto) {
 		if(validatePassengerData(passengerDto)) {
-			passengerRepo.save(convertToPassenger(passengerDto));
-           return passengerDto;
+			return convertToDto(passengerRepo.save(convertToPassenger(passengerDto))); 
 		}
-		throw new RuntimeException("Passenger Is Not Valid");
+		throw new PassengerServiceException(ConstantValue.INVALID_PASSENGER);
 	}
 
 	@Override
@@ -39,11 +41,11 @@ public class PassengerServiceImp implements PassengerService{
 		if(passengerInfo.isPresent()) {
 			return Optional.of(convertToDto(passengerInfo.get()));
 		}
-		throw new RuntimeException("Passenger Not Found With Id "+passengerId);
+		throw new ResourceNotFoundException(ConstantValue.PASSENGER_NOT_FOUND_ID+passengerId);
 	}
 
 	@Override
-	public List<PassengerDto> getPassengersByBooking(String bookingId) {
+	public List<PassengerDto> getPassengersByBooking(Long bookingId) {
 		List<PassengerInfo> passengerInfo =  passengerRepo.findByBookingId(bookingId);
 		List<PassengerDto> result = new ArrayList<>();
 		for(PassengerInfo p: passengerInfo) {
@@ -58,14 +60,19 @@ public class PassengerServiceImp implements PassengerService{
 		if(passengerInfo.isPresent()) {
 			return Optional.of(convertToDto(passengerInfo.get()));
 		}
-		throw new RuntimeException("Passenger not Found with passportNumber : "+passportNumber);
+		throw new ResourceNotFoundException(ConstantValue.PASSENGER_NOT_FOUND_PASSPORT+passportNumber);
 	}
 
 	@Override
 	public PassengerDto updatePassenger(Long passengerId, PassengerDto passengerDto) {
        Optional<PassengerInfo> passenger = passengerRepo.findById(passengerId);
-       passengerDto.setPassengerId(passengerId);
-       passengerRepo.save(convertToPassenger(passengerDto));
+       passenger.get().setBookingId(passengerDto.getBookingId());
+       passenger.get().setFirstName(passengerDto.getFirstName());
+       passenger.get().setLastName(passengerDto.getLastName());
+       passenger.get().setPassportExpiry(passengerDto.getPassportExpiry());
+       passenger.get().setSeatId(passengerDto.getSeatId());
+       passenger.get().setSeatNumber(passengerDto.getSeatNumber());
+       passengerRepo.save(passenger.get());
 		return passengerDto;
 	}
 
@@ -73,16 +80,15 @@ public class PassengerServiceImp implements PassengerService{
 	public void assignSeat(Long passengerId, Long seatId, String seatNumber) {
 		   Optional<PassengerInfo> passenger = passengerRepo.findById(passengerId);
 		   SeatDto seats = seatServiceClient.getSeatById(seatId);
-		   if(!seats.getStatus().equalsIgnoreCase("CONFIRMED")&&!seats.getStatus().equalsIgnoreCase("HELD")) {
-			   seats.setStatus("CONFIRMED");
+		   if(!seats.getStatus().equalsIgnoreCase(ConstantValue.CONFIRM)&&!seats.getStatus().equalsIgnoreCase(ConstantValue.HELD)) {
+			   seats.setStatus(ConstantValue.CONFIRM);
 			   passenger.get().setSeatId(seats.getSeatId());
-			   passenger.get().setSeatNumber(seats.getSeatNumber());
-			  
+			   passenger.get().setSeatNumber(seatNumber);
 			   seatServiceClient.confirmSeat(seatId);
 			   passengerRepo.save(passenger.get());
 			   return;
 		   }
-		   throw new RuntimeException("Seat Is Not Available");
+		   throw new PassengerServiceException(ConstantValue.SEAT_NOT_AVAILABLE);
 	}
 
 	@Override
@@ -107,7 +113,7 @@ public class PassengerServiceImp implements PassengerService{
 	}
 
 	@Override
-	public Integer getPassengerCount(String bookingId) {
+	public Integer getPassengerCount(Long bookingId) {
 		return passengerRepo.countByBookingId(bookingId);
 	}
     private PassengerInfo convertToPassenger(PassengerDto passengerDto) {
@@ -116,8 +122,8 @@ public class PassengerServiceImp implements PassengerService{
     			passengerDto.getFirstName(), passengerDto.getLastName(),
     			passengerDto.getDateOfBirth(),passengerDto.getGender(),
     			passengerDto.getPassportNumber(), passengerDto.getNationality(),
-    			passengerDto.getPassportExpiry(), passengerDto.getSeatId(),
-    			passengerDto.getSeatNumber(),passengerDto.getTicketNumber(),
+    			passengerDto.getPassportExpiry(), passengerDto.getSeatId(),passengerDto.getSeatNumber(),
+    			passengerDto.getTicketNumber(),
     			passengerDto.getPassengerType());
     }
     
@@ -130,4 +136,15 @@ public class PassengerServiceImp implements PassengerService{
     			passengerInfo.getSeatId(),passengerInfo.getSeatNumber(),
     			passengerInfo.getTicketNumber(),passengerInfo.getPassengerType());
     }
+
+	@Override
+	public PassengerDto[] addAllPassenger(PassengerDto[] passengerDto) {
+	    List<PassengerDto> list = new ArrayList<>();
+		for(PassengerDto dto :passengerDto) {
+			list.add(addPassenger(dto));
+			
+		}
+		PassengerDto[] pass = list.toArray(new PassengerDto[0]);
+		return pass;
+	}
 }

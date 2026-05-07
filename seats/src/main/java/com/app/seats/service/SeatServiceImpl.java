@@ -2,12 +2,17 @@ package com.app.seats.service;
 
 import com.app.seats.dto.SeatDto;
 import com.app.seats.enitity.Seat;
+import com.app.seats.exception.SeatServiceException;
 import com.app.seats.repository.SeatRepository;
+import com.app.seats.util.ConstantValue;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -21,95 +26,78 @@ public class SeatServiceImpl implements SeatService{
     @Override
     @Transactional
     public boolean addSeatsForFlight(Long id, List<SeatDto> seats) {
-        try{
+     
         for(SeatDto s: seats){
             repo.save(convertToSeat(s));
         }
         return true;
-        } catch (RuntimeException e) {
-            return false;
-        }
     }
 
     @Override
     public List<SeatDto> getAvailableSeats(Long id) {
-        try{
+       
             List<SeatDto> seatDtoList = new ArrayList<>();
              for( Seat s :repo.findAvailableByFlightId(id)){
                  seatDtoList.add(convertToDto(s));
              }
+             
              return seatDtoList;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
     public List<SeatDto> getAvailableByClass(Long id, String cls) {
-       try{
+     
            List<SeatDto> seatDtoList = new ArrayList<>();
            for (Seat s : repo.findByFlightIdAndSeatClass(id,cls)){
                seatDtoList.add(convertToDto(s));
            }
            return seatDtoList;
-       } catch (RuntimeException e) {
-           throw new RuntimeException(e);
-       }
+      
     }
 
     @Override
     public SeatDto getSeatById(Long id) {
-        try{
+       
             return convertToDto(repo.findBySeatId(id).get());
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+       
     }
 
     @Override
     public void holdSeat(Long id) {
-        try{
-            Seat seat = repo.findById(id).orElseThrow(() -> new RuntimeException("Seat not found with id: " + id));
-            if(seat.getStatus().equalsIgnoreCase("CONFIRMED")||seat.getStatus().equalsIgnoreCase("HELD")) {
-            	throw new RuntimeException("Seat Not available");
+       
+            Seat seat = repo.findById(id).orElseThrow(() -> new SeatServiceException(ConstantValue.SEAT_NOT_FOUND_ID + id));
+            if(seat.getStatus().equalsIgnoreCase(ConstantValue.CONFIRM)||seat.getStatus().equalsIgnoreCase(ConstantValue.HELD)) {
+            	throw new RuntimeException(ConstantValue.SEAT_NOT_AVAILABLE);
             }
-            seat.setStatus("HELD");
+            seat.setStatus(ConstantValue.HELD);
             repo.save(seat);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+       
     }
 
     @Override
     public void releaseSeat(Long id) {
-     try{
-         Seat seat = repo.findById(id).orElseThrow(() -> new RuntimeException("Seat not found with id: " + id));
-         seat.setStatus("AVAILABLE");
+    
+         Seat seat = repo.findById(id).orElseThrow(() -> new SeatServiceException(ConstantValue.SEAT_NOT_FOUND_ID+ id));
+         seat.setStatus(ConstantValue.AVAILABLE);
          repo.save(seat);
-     } catch (RuntimeException e) {
-         throw new RuntimeException(e);
-     }
+    
     }
 
     @Override
     public void confirmSeat(Long id) {
-     try{
-         Seat seat = repo.findById(id).orElseThrow(() -> new RuntimeException("Seat not found with id: " + id));
-         seat.setStatus("BOOKED");
+    
+         Seat seat = repo.findById(id).orElseThrow(() -> new SeatServiceException(ConstantValue.SEAT_NOT_FOUND_ID + id));
+         seat.setStatus(ConstantValue.CONFIRM);
          repo.save(seat);
-     } catch (RuntimeException e) {
-         throw new RuntimeException(e);
-     }
+     
     }
 
     @Override
     public SeatDto updateSeat(Long id, SeatDto seat) {
-        try{
+       
             repo.save(convertToSeat(seat));
             return seat;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        
     }
 
     @Override
@@ -118,35 +106,36 @@ public class SeatServiceImpl implements SeatService{
     }
 
     @Override
-    public List<SeatDto> getSeatMap(Long id) {
-       try{
-           List<Seat> seats = repo.findByFlightId(id);
-           List<SeatDto> seatDtoList = new ArrayList<>();
-           for (Seat s: seats){
-               seatDtoList.add(convertToDto(s));
-           }
-           return seatDtoList;
-       } catch (RuntimeException e) {
-           throw new RuntimeException(e);
-       }
+    public List<SeatDto> getSeatMap(Long flightId) {
+
+        if (flightId == null) {
+            throw new IllegalArgumentException("Flight ID cannot be null");
+        }
+
+        List<Seat> seats = repo.findByFlightId(flightId);
+
+        if (seats.isEmpty()) {
+            return Collections.emptyList(); // safe return
+        }
+
+        return seats.stream()
+                .sorted(Comparator.comparing(Seat::getSeatNumber))
+                .map(this::convertToDto)
+                .toList();
     }
 
     @Override
     public int countAvailableByClass(Long id, String cls) {
-        try{
+       
             return repo.countAvailableByClass(id,cls);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        
     }
 
     @Override
     public void deleteSeatsForFlight(Long id) {
-     try{
+   
          repo.deleteByFlightId(id);
-     } catch (RuntimeException e) {
-         throw new RuntimeException(e);
-     }
+     
     }
 
     private SeatDto convertToDto(Seat seat){
@@ -172,7 +161,7 @@ public class SeatServiceImpl implements SeatService{
                 seat.getColumn(),
                 seat.isWindow(),
                 seat.isAisle(),
-                seat.isHasExtraLegroom(),
+                seat.isExtraLegroom(),
                 seat.getStatus(),
                 seat.getPriceMultiplier());
     }

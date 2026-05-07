@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PassengerDto {
-      private Long id;
-      private String bookingId;
+      private Long passengerId;
+      private Long bookingId;
       private String title;
       private String firstName;
       private String lastName;

@@ -1,6 +1,6 @@
 package com.skybooker.skybooker.service;
-import com.skybooker.skybooker.entity.Flight;
-import com.skybooker.skybooker.model.FlightDto;
+import com.skybooker.skybooker.dto.FlightDto;
+
 
 import java.time.LocalDate;
 import java.util.List;

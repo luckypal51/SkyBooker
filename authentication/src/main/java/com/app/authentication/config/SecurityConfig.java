@@ -2,6 +2,8 @@ package com.app.authentication.config;
 
 import com.app.authentication.security.JwtFilter;
 import com.app.authentication.security.OAuth2SuccessHandler;
+import com.app.authentication.util.ConstantValue;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,12 +28,15 @@ public class SecurityConfig {
 
     @Autowired
     private OAuth2SuccessHandler successHandler;
+    
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                        		"/oauth2/**",
                                 "/auth/**",
                                 "/login/**",
                                 "/error/**",
@@ -42,12 +47,13 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/staff/**").hasRole("STAFF")
                         .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/user/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**","/user/**").hasRole(("ADMIN"))
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(401, "Unauthorized"); // 🔥 no redirect
+                            response.sendError(401, ConstantValue.UNAUTHORIZED); // 🔥 no redirect
                         })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -55,7 +61,7 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                 )
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .build();
     }

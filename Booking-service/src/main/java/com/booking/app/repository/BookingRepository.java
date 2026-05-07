@@ -10,17 +10,17 @@ import org.springframework.stereotype.Repository;
 import com.booking.app.entity.Booking;
 
 @Repository
-public interface BookingRepository extends JpaRepository<Booking,String>{
+public interface BookingRepository extends JpaRepository<Booking,Long>{
 
 	List<Booking> findByUserId(Long id);
 	
-	Optional<Booking> fingByPnrCode(String id);
+	Optional<Booking> findByPnrCode(String id);
 	
 	List<Booking> findByFlightId(Long id);
 	
 	List<Booking> findByStatus(String status);
 	
-	Optional<Booking> findByBookingId(String bookingId);
+	Optional<Booking> findByBookingId(Long bookingId);
 	
 	@Query("select COUNT(b) from Booking b where b.flightId=flightId AND b.status=status")
 	Integer countByFlightIdAndStatus(@Param("flightId")Long flightId,@Param("status")String status);

@@ -1,35 +1,39 @@
 package com.app.seats.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class SeatDto {
-    private Long seatId;
-    private Long flightId;
-    private String seatNumber;
-    private String seatClass;
-    private int row;
-    private String column;
-    private boolean isWindow;
-    private boolean isAisle;
-    private boolean hasExtraLegroom;
-    private String status;
-    private double priceMultiplier;
 
-    public SeatDto(Long flightId, String seatNumber, String seatClass, int row, String column, boolean isWindow, boolean isAisle, boolean hasExtraLegroom, String status, double priceMultiplier) {
-        this.flightId = flightId;
-        this.seatNumber = seatNumber;
-        this.seatClass = seatClass;
-        this.row = row;
-        this.column = column;
-        this.isWindow = isWindow;
-        this.isAisle = isAisle;
-        this.hasExtraLegroom = hasExtraLegroom;
-        this.status = status;
-        this.priceMultiplier = priceMultiplier;
-    }
+    private Long seatId;
+
+    @NotNull(message = "Flight ID cannot be null")
+    private Long flightId;
+
+    @NotBlank(message = "Seat number is required")
+    private String seatNumber;
+
+    @NotBlank(message = "Seat class is required")
+    private String seatClass; 
+
+    @Min(value = 1, message = "Row must be at least 1")
+    private int row;
+
+    @Pattern(regexp = "^[A-F]$", message = "Column must be between A-F")
+    private String column;
+
+    private boolean window;
+    private boolean aisle;
+    private boolean extraLegroom;
+
+    @NotBlank(message = "Status is required")
+    private String status; 
+
+    @Positive
+    private Double priceMultiplier;
 }

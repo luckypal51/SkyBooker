@@ -12,7 +12,7 @@ public interface PassengerService {
 	
 	Optional<PassengerDto> getPassengerById(Long passengerId);
 	
-	List<PassengerDto> getPassengersByBooking(String bookingId);
+	List<PassengerDto> getPassengersByBooking(Long bookingId);
     
 	Optional<PassengerDto> getByPassportNumber(String passportNumber);
 	
@@ -26,5 +26,7 @@ public interface PassengerService {
 	
 	boolean validatePassengerData(PassengerDto passengerDto);
 	
-	Integer getPassengerCount(String bookingId);
+	Integer getPassengerCount(Long bookingId);
+
+	PassengerDto[] addAllPassenger(PassengerDto[] passengerDto);
 }
