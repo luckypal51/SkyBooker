@@ -1,0 +1,189 @@
+version: "3.9"
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - skybooker-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  authentication-service:
+    build:
+      context: ./authentication
+      dockerfile: Dockerfile
+    container_name: authentication-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  seat-service:
+    build:
+      context: ./seats
+      dockerfile: Dockerfile
+    container_name: seat-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  skybooker:
+    build:
+      context: ./skybooker
+      dockerfile: Dockerfile
+    container_name: skybooker
+    ports:
+      - "8083:8083"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  passenger-service:
+    build:
+      context: ./passenger-service
+      dockerfile: Dockerfile
+    container_name: passenger-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  booking-service:
+    build:
+      context: ./Booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: ./PaymentService
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      PAYMENT_API_KEY: ${PAYMENT_API_KEY}
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    networks:
+      - skybooker-network
+    restart: unless-stopped
+
+networks:
+  skybooker-network:
+    driver: bridge
