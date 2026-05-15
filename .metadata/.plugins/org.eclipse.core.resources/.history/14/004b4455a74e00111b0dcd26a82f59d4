@@ -1,0 +1,45 @@
+package com.app.authentication.util;
+
+public class ConstantValue {
+       public static final String UNAUTHORIZED = "Unauthorized";
+       
+       public static final String OAUTH2_PATH = "/oauth2/authorization/google";
+       
+       public static final String AUTHORIZED = "Authorization";
+       
+       public static final String BEARER = "Bearer ";
+       
+       public static final String OAUTH2_REDIRECT_URL = "http://sky-booker-ui.vercel.app/oauth-success?token=";
+       
+       public static final String USER_EXISTS = "User Already exists";
+       
+       public static final String SUCCESSFULLY_ADDED_USER = "SuccessFully Added User ";
+       
+       public static final String GENERATED_TOKEN = "Successfully Generated Token";
+       
+       public static final String USER_NOT_FOUND_ID = "User Not Found With Id :";
+       
+       public static final String USER_NOT_FOUND_EMAIL = "User Not Found With email :";
+       
+       public static final String PASSWOR_REQUEST = "Password Reset Request";
+       
+       public static final String YOUR_OTP =  "Your OTP is:\n" ;
+       
+       public static final String VALID_FOR_15_MIN = "\nValid for 15 minutes.";
+       
+       public static final String EMAIL_SENT_TO = "Email sent to: ";
+       
+       public static final String OTP_ALREADY_SENT = "OTP already sent. Try later.";
+       
+       public static final String OTP_SENT = "OTP sent successfully";
+       
+       public static final String INVALID_OTP = "Invalid OTP";
+       
+       public static final String OTP_EXPIRE = "Token expired";
+       
+       public static final String USER_NOT_FOUND = "User not found";
+       
+       public static final String PASSWORD_RESET_SUCCESSFULLY = "Password Reset Completed";
+       
+       public static final String SECRET = "asdfghjklqwertyuiopzxcvbnm756312369qwertyuiopsdfghjk";
+}
