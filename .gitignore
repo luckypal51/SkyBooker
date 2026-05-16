@@ -93,3 +93,4 @@ jacoco.exec
 *.tmp
 *.swp
 *~
+.metadata/
