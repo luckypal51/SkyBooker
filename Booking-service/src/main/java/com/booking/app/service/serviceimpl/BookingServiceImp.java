@@ -29,6 +29,7 @@ import com.booking.app.entity.Booking;
 import com.booking.app.entity.Seat;
 import com.booking.app.exception.BookingSericeException;
 import com.booking.app.exception.ResourceNotFoundException;
+import com.booking.app.interservice.BookingProducer;
 import com.booking.app.interservice.FlightClient;
 import com.booking.app.interservice.NotificationClient;
 import com.booking.app.interservice.PassengerClient;
@@ -64,6 +65,9 @@ public class BookingServiceImp implements BookingService{
 	
 	@Autowired
 	PaymentClient pay;
+	
+	@Autowired
+	BookingProducer bookingProducer;
 	
 	private static final String ALPHA_NUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final SecureRandom random = new SecureRandom();
@@ -146,7 +150,7 @@ public class BookingServiceImp implements BookingService{
 		Booking booking = repo.findByBookingId(bookingId).orElseThrow(()-> new ResourceNotFoundException(ConstantValue.BOOKINGID_NOT_FOUND));
 		booking.setBookedAt(LocalDateTime.now());
 		BookingConfirmDto confirm = new BookingConfirmDto(booking.getUserId(),booking.getBookingId(),booking.getContactEmail(),booking.getContactPhone());
-		notify.confirmBooking(confirm);
+		bookingProducer.sendBookingConfirmation(confirm);
 		booking.setStatus(ConstantValue.CONFIRM);
 		repo.save(booking);
 	}

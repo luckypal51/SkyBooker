@@ -8,12 +8,12 @@ spring:
   cloud:
     gateway:
 
-      # ✅ CORS CONFIG
       globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
               - "http://localhost:4200"
+              - "http://13.51.35.80"
             allowedMethods:
               - GET
               - POST
@@ -26,13 +26,13 @@ spring:
 
       routes:
 
-        # 🔐 AUTH SERVICE (PUBLIC)
+        # AUTH SERVICE
         - id: authentication-service
           uri: lb://AUTHENTICATION
           predicates:
             - Path=/auth/**,/login,/oauth2/**
 
-        # 🔐 ADMIN (SECURED)
+        # ADMIN SERVICE
         - id: admin-service
           uri: lb://AUTHENTICATION
           predicates:
@@ -40,7 +40,7 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # 👤 PASSENGER SERVICE
+        # PASSENGER SERVICE
         - id: passenger-service
           uri: lb://PASSENGER-SERVICE
           predicates:
@@ -48,23 +48,23 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # 💺 SEATS SERVICE
+        # SEATS SERVICE
         - id: seats-service
           uri: lb://SEATS
           predicates:
-            - Path=/seats/**, /staff/seat/**
+            - Path=/seats/**,/staff/seat/**
           filters:
             - AuthenticationFilter
 
-        # ✈️ FLIGHT SERVICE
+        # FLIGHT SERVICE
         - id: flight-service
           uri: lb://SKYBOOKER
           predicates:
-            - Path=/flight/**, /staff/flight/**
+            - Path=/flight/**,/staff/flight/**
           filters:
             - AuthenticationFilter
 
-        # 🧾 BOOKING SERVICE (🔥 ADDED FIX)
+        # BOOKING SERVICE
         - id: booking-service
           uri: lb://BOOKING-SERVICE
           predicates:
@@ -72,13 +72,13 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # 💳 PAYMENT PUBLIC (NO AUTH)
+        # PAYMENT PUBLIC
         - id: payment-public
           uri: lb://PAYMENT-SERVICE
           predicates:
-            - Path=/payment/success, /payment/cancel, /payments/webhook
+            - Path=/payment/success,/payment/cancel,/payments/webhook
 
-        # 💳 PAYMENT SECURED
+        # PAYMENT SECURED
         - id: payment-secured
           uri: lb://PAYMENT-SERVICE
           predicates:
@@ -89,7 +89,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://eureka-server:8761/eureka
     register-with-eureka: true
     fetch-registry: true
 

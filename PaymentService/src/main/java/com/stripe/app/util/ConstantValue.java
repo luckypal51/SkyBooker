@@ -3,9 +3,9 @@ package com.stripe.app.util;
 public class ConstantValue {
    public static final String PENDING = "PENDING";
    
-   public static final String SUCCESS_URL = "http://localhost:8080/payment/success/";
+   public static final String SUCCESS_URL = "http://13.51.35.80:8080/payment/success/";
    
-   public static final String CANCEL_URL = "http://localhost:8080/payment/cancel/";
+   public static final String CANCEL_URL = "http://13.51.35.80:8080/payment/cancel/";
    
    public static final String SUCESS = "SUCCESS";
    

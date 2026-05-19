@@ -9,7 +9,7 @@ public class ConstantValue {
        
        public static final String BEARER = "Bearer ";
        
-       public static final String OAUTH2_REDIRECT_URL = "http://localhost:4200/oauth-success?token=";
+       public static final String OAUTH2_REDIRECT_URL = "http://13.51.35.80/oauth-success?token=";
        
        public static final String USER_EXISTS = "User Already exists";
        

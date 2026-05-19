@@ -26,7 +26,7 @@ public class ProductCheckoutController {
     @GetMapping("/success/{paymentId}")
     public ResponseEntity<Void> successPayment(@PathVariable String paymentId){
     	stripeService.success(paymentId);
-    	URI uri = URI.create("http://localhost:4200/payment/success/"+paymentId);
+    	URI uri = URI.create("http://13.51.35.80/payment/success/"+paymentId);
 
         return ResponseEntity.status(HttpStatus.FOUND)   // 302
                 .location(uri)
@@ -35,7 +35,7 @@ public class ProductCheckoutController {
 
     @GetMapping("/cancel/{paymentId}")
     public ResponseEntity<PaymentDto> failurePayment(@PathVariable String paymentId){
-    	URI uri = URI.create("http://localhost:4200/payment/failure/"+paymentId);
+    	URI uri = URI.create("http://13.51.35.80/payment/failure/"+paymentId);
     	stripeService.failure(paymentId);
         return ResponseEntity.status(HttpStatus.FOUND)   // 302
                 .location(uri)
