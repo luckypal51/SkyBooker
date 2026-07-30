@@ -8,7 +8,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -215,7 +215,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_RABBITMQ_HOST: rabbitmq
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      PAYMENT_API_KEY: ${PAYMENT_API_KEY}
+      PAYMENT_SECRET: ${PAYMENT_SECRET}
     networks:
       - skybooker-network
     restart: unless-stopped

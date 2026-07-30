@@ -48,7 +48,9 @@ public class AuthService implements AuthServiceImpl {
               throw new AuthenticationException(ConstantValue.USER_EXISTS);
           }
           requestDto.setPassword(encoder.encode(requestDto.getPassword()));
+          requestDto.setActive(true);
           userRepository.save(converToUser(requestDto));
+          
           return ConstantValue.SUCCESSFULLY_ADDED_USER+requestDto.getFullName();
     }
 

@@ -41,8 +41,11 @@ import com.booking.app.util.ConstantValue;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
 
 
 @Service
@@ -84,6 +87,7 @@ public class BookingServiceImp implements BookingService{
 		   FareSummary fareSummary = calculateFare(booking.getFlightId(),booking.getBookingId(),passenagers.size());
 		   savedBooking.setBaseFare(fareSummary.getBaseFare());
 		   savedBooking.setTotalFare(fareSummary.getTotalFare());
+		   savedBooking.setTaxes(18.0);
 		   savedBooking.setPnrCode(generatePnr());
 		   
 		   for(PassengerDto dto : passenagers) {
@@ -257,38 +261,99 @@ public class BookingServiceImp implements BookingService{
 	    PdfDocument pdf = new PdfDocument(writer);
 	    Document document = new Document(pdf);
 
-	    // Removed emoji
-	    document.add(new Paragraph("SkyBooker Ticket")
+	    document.setMargins(30, 30, 30, 30);
+
+	    // ===== Header =====
+	    Paragraph title = new Paragraph("SkyBooker Flight Ticket")
 	            .setBold()
-	            .setFontSize(18));
+	            .setFontSize(22)
+	            .setTextAlignment(TextAlignment.CENTER);
 
-	    document.add(new Paragraph("Booking ID: " + bookingId));
-	    document.add(new Paragraph("Departure Date: " + departureDate));
+	    document.add(title);
 
-	    document.add(new Paragraph("\nPassengers:\n"));
+	    document.add(new Paragraph("Your journey begins here")
+	            .setFontSize(11)
+	            .setTextAlignment(TextAlignment.CENTER));
 
-	    float[] columnWidths = {250F, 150F};
-	    Table table = new Table(columnWidths);
+	    document.add(new Paragraph("\n"));
 
-	    table.addCell("Passenger Name");
-	    table.addCell("Seat Number");
+	    // ===== Ticket Info Section =====
+	    Table infoTable = new Table(new float[]{180F, 300F});
+	    infoTable.setWidth(UnitValue.createPercentValue(100));
+
+	    infoTable.addCell(new Cell().add(new Paragraph("Booking ID").setBold()));
+	    infoTable.addCell(new Cell().add(new Paragraph(String.valueOf(bookingId))));
+
+	    infoTable.addCell(new Cell().add(new Paragraph("Departure Date").setBold()));
+	    infoTable.addCell(new Cell().add(new Paragraph(String.valueOf(departureDate))));
+
+	    infoTable.addCell(new Cell().add(new Paragraph("Total Passengers").setBold()));
+	    infoTable.addCell(new Cell().add(new Paragraph(String.valueOf(passengers.size()))));
+
+	    document.add(infoTable);
+
+	    document.add(new Paragraph("\nPassenger Details")
+	            .setBold()
+	            .setFontSize(16));
+
+	    // ===== Passenger Table =====
+	    Table passengerTable = new Table(new float[]{250F, 150F});
+	    passengerTable.setWidth(UnitValue.createPercentValue(100));
+
+	    passengerTable.addHeaderCell(
+	            new Cell().add(new Paragraph("Passenger Name").setBold())
+	    );
+
+	    passengerTable.addHeaderCell(
+	            new Cell().add(new Paragraph("Seat Number").setBold())
+	    );
 
 	    for (PassengerDto p : passengers) {
-	        String fullName = 
-	            (p.getFirstName() != null ? p.getFirstName() : "")
-	            + " "
-	            + (p.getLastName() != null ? p.getLastName() : "");
 
-	        String seat =
-	            p.getSeatNumber() != null
-	            ? p.getSeatNumber()
-	            : "Not Assigned";
+	        String firstName = p.getFirstName() != null ? p.getFirstName() : "";
+	        String lastName = p.getLastName() != null ? p.getLastName() : "";
 
-	        table.addCell(fullName);
-	        table.addCell(seat);
+	        String fullName = (firstName + " " + lastName).trim();
+
+	        if (fullName.isEmpty()) {
+	            fullName = "Passenger";
+	        }
+
+	        String seat = p.getSeatNumber() != null
+	                ? p.getSeatNumber()
+	                : "Not Assigned";
+
+	        passengerTable.addCell(new Cell().add(new Paragraph(fullName)));
+	        passengerTable.addCell(new Cell().add(new Paragraph(seat)));
 	    }
 
-	    document.add(table);
+	    document.add(passengerTable);
+
+	    document.add(new Paragraph("\n"));
+
+	    // ===== Important Notes =====
+	    document.add(new Paragraph("Important Instructions")
+	            .setBold()
+	            .setFontSize(14));
+
+	    document.add(new Paragraph(
+	            "1. Please carry a valid government ID proof.\n" +
+	            "2. Reach the airport at least 2 hours before departure.\n" +
+	            "3. Keep this ticket available during check-in.\n" +
+	            "4. Seat numbers may be updated before boarding if required."
+	    ).setFontSize(10));
+
+	    document.add(new Paragraph("\n"));
+
+	    // ===== Footer =====
+	    document.add(new Paragraph("Thank you for choosing SkyBooker.")
+	            .setBold()
+	            .setTextAlignment(TextAlignment.CENTER));
+
+	    document.add(new Paragraph("Have a safe and happy journey!")
+	            .setFontSize(11)
+	            .setTextAlignment(TextAlignment.CENTER));
+
 	    document.close();
 
 	    return out.toByteArray();
